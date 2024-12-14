@@ -46,6 +46,8 @@
   
   public function detect_version() {
     $this->is_writable = true;
+    $this->is_active = false;
+    $this->compatible_version = false;
 
     foreach ($this->replace_list as $file_path) {
       if (!is_writable($file_path)) {
@@ -124,7 +126,7 @@
 
   protected function configure(): void
   {
-    global $tpl, $ilCtrl, $lng;
+    global $tpl, $ilCtrl;
 
 
 		require_once("./Services/Form/classes/class.ilPropertyFormGUI.php");
@@ -134,28 +136,28 @@
     
     if (!$this->is_writable) {
       $plugin_enabled_heading = new ilFormSectionHeaderGUI();
-      $plugin_enabled_heading->setTitle('The plugin doesn\'t have writing permissions on ILIAS files');
+      $plugin_enabled_heading->setTitle($this->plugin->txt('not_writable'));
       $form->addItem($plugin_enabled_heading);
 
     } elseif ($this->compatible_version) {
 
       if (!$this->is_active) {
         $plugin_enabled_heading = new ilFormSectionHeaderGUI();
-        $plugin_enabled_heading->setTitle('Your ILIAS version is supported (v. ' . $this->compatible_version . ')');
+        $plugin_enabled_heading->setTitle($this->plugin->txt('status_supported') . ' (v.' . $this->compatible_version . ')');
         $form->addItem($plugin_enabled_heading);
   
-        $form->addCommandButton("enablexApi", $lng->txt("Enable"));
+        $form->addCommandButton("enablexApi", $this->plugin->txt("enable"));
       } else {
         $plugin_enabled_heading = new ilFormSectionHeaderGUI();
-        $plugin_enabled_heading->setTitle('Active version: ' . $this->compatible_version);
+        $plugin_enabled_heading->setTitle($this->plugin->txt('status_active') . ' (v.' . $this->compatible_version . ')');
         $form->addItem($plugin_enabled_heading);
 
-        $form->addCommandButton("disablexApi", $lng->txt("Disable"));
+        $form->addCommandButton("disablexApi", $this->plugin->txt("disable"));
       }
 
     } else {
       $plugin_enabled_heading = new ilFormSectionHeaderGUI();
-      $plugin_enabled_heading->setTitle('Your version of ILIAS is not compatible with this plugin version');
+      $plugin_enabled_heading->setTitle($this->plugin->txt('compatible_version'));
       $form->addItem($plugin_enabled_heading);
     }
 

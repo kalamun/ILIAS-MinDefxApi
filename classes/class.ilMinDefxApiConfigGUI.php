@@ -23,6 +23,7 @@
   protected $compatible_version;
   protected $is_active;
   protected $replace_list;
+  protected $is_writable;
   
   public function __construct()
   {
@@ -42,14 +43,21 @@
 
     $this->detect_version();
   }
-
+  
   public function detect_version() {
+    $this->is_writable = true;
+
     foreach ($this->replace_list as $file_path) {
+      if (!is_writable($file_path)) {
+        $this->is_writable = false;
+      }
+
       $file_name = basename($file_path);
       $content = file_get_contents($file_path);
       if (strpos($content, '* edited by MinDefxAPI v') !== false) {
         $this->is_active = true;
-        $this->compatible_version = preg_match('#^((\d+\.)+\d+)#', substr($content, strpos($content, '* edited by MinDefxAPI v') + 10, 8))[0];
+        preg_match('#^((\d+\.)+\d+)#', substr($content, strpos($content, '* edited by MinDefxAPI v') + 24, 8), $matched_version);
+        $this->compatible_version = $matched_version[0];
       } else {
         foreach (glob(__DIR__ . '/../bkup_files/*', GLOB_ONLYDIR) as $path) {
           $bkup_file_content = file_get_contents($path . '/' . $file_name);
@@ -80,28 +88,38 @@
 
   protected function enablexApi(): void
   {
-    foreach ($this->replace_list as $copy_to) {
+    foreach ($this->replace_list as $file_path) {
+      if ($this->compatible_version) {
+        $file_name = basename($file_path);
+        $copy_from = __DIR__ . '/../src_files/' . $this->compatible_version . '/' . $file_name;
+        $copy_to = $file_path;
+
+        if (file_exists($copy_from) && file_exists($copy_to)) {
+          copy($copy_from, $copy_to);
+        }
+      }
+    }
+    // ilUtil::sendSuccess($this->plugin->txt("configuration_saved"), true);
+    $this->detect_version();
+    $this->configure();
+  }
+  
+  protected function disablexApi(): void
+  {
+    foreach ($this->replace_list as $file_path) {
       if ($this->compatible_version) {
         $file_name = basename($file_path);
         $copy_from = __DIR__ . '/../bkup_files/' . $this->compatible_version . '/' . $file_name;
-
+        $copy_to = $file_path;
+        
         if (file_exists($copy_from) && file_exists($copy_to)) {
           copy($copy_from, $copy_to);
         }
       }
-  }
-
-  protected function disablexApi(): void
-  {
-    foreach ($this->replace_list as $copy_from) {
-      if ($this->compatible_version) {
-        $file_name = basename($file_path);
-        $copy_to = __DIR__ . '/../bkup_files/' . $this->compatible_version . '/' . $file_name;
-
-        if (file_exists($copy_from) && file_exists($copy_to)) {
-          copy($copy_from, $copy_to);
-        }
-      }
+    }
+    // ilUtil::sendSuccess($this->plugin->txt("configuration_saved"), true);
+    $this->detect_version();
+    $this->configure();
   }
 
   protected function configure(): void
@@ -114,7 +132,12 @@
 		$form->setFormAction($ilCtrl->getFormAction($this));
     $form->setTitle($this->plugin->txt("settings"));
     
-    if ($this->compatible_version) {
+    if (!$this->is_writable) {
+      $plugin_enabled_heading = new ilFormSectionHeaderGUI();
+      $plugin_enabled_heading->setTitle('The plugin doesn\'t have writing permissions on ILIAS files');
+      $form->addItem($plugin_enabled_heading);
+
+    } elseif ($this->compatible_version) {
 
       if (!$this->is_active) {
         $plugin_enabled_heading = new ilFormSectionHeaderGUI();
@@ -132,51 +155,10 @@
 
     } else {
       $plugin_enabled_heading = new ilFormSectionHeaderGUI();
-      $plugin_enabled_heading->setTitle($this->compatible_version);
+      $plugin_enabled_heading->setTitle('Your version of ILIAS is not compatible with this plugin version');
       $form->addItem($plugin_enabled_heading);
     }
 
 		$tpl->setContent($form->getHTML());
-  }
-
-  protected function updateConfigure()/*: void*/
-  {
-    if (!empty($_POST['plugin_enabled'])) {
-      foreach ($this->replace_list as $rule) {
-        if (file_exists($rule['path'])) {
-          $file_content = file_get_contents($rule['path']);
-          
-          /* backup */
-          if (strpos($file_content, '/* edited by MinDefxApi') === false) {
-            copy($rule['path'], dirname($rule['path']) . '/_' . basename($rule['path']));
-          }
-  
-          if (strpos($file_content, '/* edited by MinDefxApi') === false) {
-            $file_content = "/* edited by MinDefxApi */\n\n" . $file_content;
-          }
-  
-          $file_content = str_replace($rule['match'], $rule['replace'], $file_content);
-          file_put_contents($rule['path'], $file_content);
-        }
-      }
-      
-    } else {
-      foreach ($this->replace_list as $rule) {
-        if (file_exists($rule['path'])) {
-          $file_content = file_get_contents($rule['path']);
-          
-          /* backup */
-          if (strpos($file_content, '/* edited by MinDefxApi') === false) {
-            move(dirname($rule['path']) . '/_' . basename($rule['path']), $rule['path']);
-          }
-        }
-      }
-
-    }
-
-    self::configure();
-
-    ilUtil::sendSuccess($this->plugin->txt("configuration_saved"), true);
-
   }
 }

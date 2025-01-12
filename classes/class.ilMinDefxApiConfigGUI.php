@@ -38,7 +38,16 @@
     $this->object = $this->dic->object();
     
     $this->replace_list = [
+      "./Modules/CmiXapi/classes/class.ilCmiXapiScoringGUI.php",
       "./Modules/CmiXapi/classes/class.ilCmiXapiStatementsGUI.php",
+      "./Modules/CmiXapi/classes/class.ilObjCmiXapi.php",
+      "./Modules/CmiXapi/classes/class.ilObjCmiXapiGUI.php",
+      "./Modules/CmiXapi/classes/XapiReport/class.ilCmiXapiAbstractReportLinkBuilder.php",
+      "./Modules/CmiXapi/classes/XapiReport/class.ilCmiXapiHighscoreReport.php",
+      "./Modules/CmiXapi/classes/XapiReport/class.ilCmiXapiHighscoreReportLinkBuilder.php",
+      "./Modules/CmiXapi/classes/XapiReport/class.ilCmiXapiStatementsReport.php",
+      "./Modules/CmiXapi/classes/XapiReport/class.ilCmiXapiStatementsReportLinkBuilder.php",
+      "./Modules/CmiXapi/classes/XapiReport/class.ilXapiCompliantStatementsReportLinkBuilder.php",
     ];
 
     $this->detect_version();
@@ -92,7 +101,7 @@
   {
     foreach ($this->replace_list as $file_path) {
       if ($this->compatible_version) {
-        $file_name = basename($file_path);
+        $file_name = str_replace("./Modules/CmiXapi/classes/", "", $file_path);
         $copy_from = __DIR__ . '/../src_files/' . $this->compatible_version . '/' . $file_name;
         $copy_to = $file_path;
 
@@ -110,7 +119,7 @@
   {
     foreach ($this->replace_list as $file_path) {
       if ($this->compatible_version) {
-        $file_name = basename($file_path);
+        $file_name = str_replace("./Modules/CmiXapi/classes/", "", $file_path);
         $copy_from = __DIR__ . '/../bkup_files/' . $this->compatible_version . '/' . $file_name;
         $copy_to = $file_path;
         

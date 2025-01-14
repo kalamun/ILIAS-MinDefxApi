@@ -53,6 +53,10 @@
     $this->detect_version();
   }
   
+  private function get_local_path($file_path) {
+    return str_replace("./Modules/CmiXapi/classes/", "", $file_path);
+  }
+
   public function detect_version() {
     $this->is_writable = true;
     $this->is_active = false;
@@ -63,7 +67,7 @@
         $this->is_writable = false;
       }
 
-      $file_name = basename($file_path);
+      $file_name = $this->get_local_path($file_path);
       $content = file_get_contents($file_path);
       if (strpos($content, '* edited by MinDefxAPI v') !== false) {
         $this->is_active = true;
@@ -101,7 +105,7 @@
   {
     foreach ($this->replace_list as $file_path) {
       if ($this->compatible_version) {
-        $file_name = str_replace("./Modules/CmiXapi/classes/", "", $file_path);
+        $file_name = $this->get_local_path($file_path);
         $copy_from = __DIR__ . '/../src_files/' . $this->compatible_version . '/' . $file_name;
         $copy_to = $file_path;
 
@@ -119,7 +123,7 @@
   {
     foreach ($this->replace_list as $file_path) {
       if ($this->compatible_version) {
-        $file_name = str_replace("./Modules/CmiXapi/classes/", "", $file_path);
+        $file_name = $this->get_local_path($file_path);
         $copy_from = __DIR__ . '/../bkup_files/' . $this->compatible_version . '/' . $file_name;
         $copy_to = $file_path;
         

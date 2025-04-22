@@ -74,7 +74,7 @@
         preg_match('#^((\d+\.)+\d+)#', substr($content, strpos($content, '* edited by MinDefxAPI v') + 24, 8), $matched_version);
         $this->compatible_version = $matched_version[0];
       } else {
-        foreach (glob(__DIR__ . '/../bkup_files/*', GLOB_ONLYDIR) as $path) {
+        foreach (glob(__DIR__ . '/../vendor/bkup_files/*', GLOB_ONLYDIR) as $path) {
           $bkup_file_content = file_get_contents($path . '/' . $file_name);
           if ($bkup_file_content == $content) {
             $this->compatible_version = basename($path);
@@ -106,7 +106,7 @@
     foreach ($this->replace_list as $file_path) {
       if ($this->compatible_version) {
         $file_name = $this->get_local_path($file_path);
-        $copy_from = __DIR__ . '/../src_files/' . $this->compatible_version . '/' . $file_name;
+        $copy_from = __DIR__ . '/../vendor/src_files/' . $this->compatible_version . '/' . $file_name;
         $copy_to = $file_path;
 
         if (file_exists($copy_from) && file_exists($copy_to)) {
@@ -124,7 +124,7 @@
     foreach ($this->replace_list as $file_path) {
       if ($this->compatible_version) {
         $file_name = $this->get_local_path($file_path);
-        $copy_from = __DIR__ . '/../bkup_files/' . $this->compatible_version . '/' . $file_name;
+        $copy_from = __DIR__ . '/../vendor/bkup_files/' . $this->compatible_version . '/' . $file_name;
         $copy_to = $file_path;
         
         if (file_exists($copy_from) && file_exists($copy_to)) {
